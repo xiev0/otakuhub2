@@ -35,10 +35,12 @@ async function fetchJson<T>(url: string, params?: Record<string, string>): Promi
 /** Get latest releases (for home page) */
 export async function getLatestReleases(limit = 12): Promise<any[]> {
   try {
-    const data = await fetchJson<any>(`${API_BASE}/anime/releases/latest?limit=14&include=id%2Ctype.genres&exclude=poster%2Cdescription`, {
-      limit: String(limit),
-      filter: 'id,names,posters,type,status,season,description,genres,player',
-    });
+    const data = await fetchJson<any>(
+        `${API_BASE}/anime/releases/latest`,
+        {
+          limit: String(limit),
+        }
+    );
     return Array.isArray(data) ? data : (data?.list ?? []);
   } catch (e) {
     console.error('AniLibria getLatestReleases error:', e);
@@ -49,9 +51,7 @@ export async function getLatestReleases(limit = 12): Promise<any[]> {
 /** Get schedule (for this week) */
 export async function getSchedule(): Promise<any[]> {
   try {
-    const data = await fetchJson<any>(`${API_BASE}/title/schedule`, {
-      filter: 'id,names,posters,type,status,season,player',
-    });
+    const data = await fetchJson<any>(`${API_BASE}/anime/schedule/now?include=id%2Ctype.genres&exclude=poster%2Cdescription`);
     return Array.isArray(data) ? data : (data?.list ?? []);
   } catch {
     return [];
@@ -73,7 +73,6 @@ export async function searchTitles(query: string, limit = 10): Promise<any[]> {
     const data = await fetchJson<any>(`${API_BASE}/app/search/releases?query=query&include=id%2Ctype.genres&exclude=poster%2Cdescription`, {
       search: query,
       limit: String(limit),
-      filter: 'id,names,posters,type,status,season,genres',
     });
     return Array.isArray(data) ? data : (data?.list ?? []);
   } catch {
@@ -87,7 +86,6 @@ export async function getTitles(page = 1, limit = 12): Promise<{ data: any[]; to
     const data = await fetchJson<any>(`${API_BASE}/title/list`, {
       page: String(page),
       items_per_page: String(limit),
-      filter: 'id,names,posters,type,status,season,genres,in_favorites',
     });
     return {
       data: Array.isArray(data) ? data : (data?.list ?? []),
