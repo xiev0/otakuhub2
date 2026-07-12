@@ -1,0 +1,60 @@
+.player {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.qualityPanel {
+  position: absolute;
+  bottom: 56px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,0.8);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+  flex-wrap: wrap;
+}
+
+.qualityPanel.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.qualityLabel {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.qualityBtn {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: #ccc;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.qualityBtn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+.qualityBtn.active {
+  background: var(--color-accent);
+  color: #000;
+  font-weight: 700;
+}
