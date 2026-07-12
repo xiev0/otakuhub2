@@ -13,8 +13,8 @@ export default function Home() {
 
   useEffect(() => {
     Promise.all([
-      animeApi.getLatest(16),
-      animeApi.getPopular(12),
+      animeApi.getLatest(6),
+      animeApi.getPopular(6),
       animeApi.getSchedule(),
     ]).then(([lat, pop, sch]) => {
       setLatest(lat);
@@ -99,13 +99,13 @@ export default function Home() {
             </h2>
           </div>
           {loading ? (
-            <div className={styles.grid}>
-              {Array.from({ length: 12 }).map((_, i) => (
+            <div className={styles.row}>
+              {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className={styles.skeleton} />
               ))}
             </div>
           ) : (
-            <div className={styles.grid}>
+            <div className={styles.row}>
               {popular.map(a => <AnimeCard key={a.id} anime={a} />)}
             </div>
           )}
@@ -120,13 +120,13 @@ export default function Home() {
             Последние обновления
           </h2>
           {loading ? (
-            <div className={styles.grid}>
-              {Array.from({ length: 16 }).map((_, i) => (
+            <div className={styles.row}>
+              {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className={styles.skeleton} />
               ))}
             </div>
           ) : (
-            <div className={styles.grid}>
+            <div className={styles.row}>
               {latest.map(a => <AnimeCard key={a.id} anime={a} />)}
             </div>
           )}

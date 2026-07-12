@@ -117,10 +117,10 @@ export interface Comment {
 
 // ─── Anime API ─────────────────────────────────────────────────────────
 export const animeApi = {
-  getLatest: (limit = 12) =>
+  getLatest: (limit = 6) =>
     request<AnimeRelease[]>(`/anime/latest?limit=${limit}`),
 
-  getPopular: (limit = 12) =>
+  getPopular: (limit = 6) =>
     request<AnimeRelease[]>(`/anime/popular?limit=${limit}`),
 
   getSchedule: () =>
