@@ -1,24 +1,44 @@
 const API_BASE = "https://anilibria.top/api/v1";
 const SITE_BASE = 'https://anilibria.top';
 
-interface HlsEpisode {
-  episode: number;
-  hls_fhd: string | null;
-  hls_hd: string | null;
-  hls_sd: string | null;
-  preview: string | null;
-  translation: string;
+interface RawEpisode {
+  id: string;
+  name: string | null;
+  name_english: string | null;
+  ordinal: number;
+  duration: number | null;
+  opening: { start: number; stop: number } | null;
+  ending: { start: number; stop: number } | null;
+  preview: {
+    src: string;
+    optimized?: { preview?: string };
+  } | null;
+  hls_480: string | null;
+  hls_720: string | null;
+  hls_1080: string | null;
 }
 
 interface PlayerSource {
   id: string;
   shikimoriId: number;
   episodeNumber: number;
+  name: string | null;
   playerUrl: string;
   hls: { fhd: string | null; hd: string | null; sd: string | null };
+  preview: string | null;
+  duration: number | null;
+  skips: {
+    opening?: [number, number];
+    ending?: [number, number];
+  };
   quality: string;
   translation: string;
   player_type: 'HLS';
+}
+
+interface Genre {
+  id: number;
+  name: string;
 }
 
 async function fetchJson<T>(url: string, params?: Record<string, string>): Promise<T> {
@@ -35,12 +55,9 @@ async function fetchJson<T>(url: string, params?: Record<string, string>): Promi
 /** Get latest releases (for home page) */
 export async function getLatestReleases(limit = 12): Promise<any[]> {
   try {
-    const data = await fetchJson<any>(
-        `${API_BASE}/anime/releases/latest`,
-        {
-          limit: String(limit),
-        }
-    );
+    const data = await fetchJson<any>(`${API_BASE}/anime/releases/latest`, {
+      limit: String(limit),
+    });
     return Array.isArray(data) ? data : (data?.list ?? []);
   } catch (e) {
     console.error('AniLibria getLatestReleases error:', e);
@@ -51,9 +68,12 @@ export async function getLatestReleases(limit = 12): Promise<any[]> {
 /** Get schedule (for this week) */
 export async function getSchedule(): Promise<any[]> {
   try {
-    const data = await fetchJson<any>(`${API_BASE}/anime/schedule/now?include=id%2Ctype.genres&exclude=poster%2Cdescription`);
+    const data = await fetchJson<any>(
+      `${API_BASE}/anime/schedule/now?include=id%2Ctype.genres&exclude=poster%2Cdescription`
+    );
     return Array.isArray(data) ? data : (data?.list ?? []);
-  } catch {
+  } catch (e) {
+    console.error('AniLibria getSchedule error:', e);
     return [];
   }
 }
@@ -62,7 +82,8 @@ export async function getSchedule(): Promise<any[]> {
 export async function getTitleById(id: number | string): Promise<any | null> {
   try {
     return await fetchJson<any>(`${API_BASE}/anime/releases/${id}`);
-  } catch {
+  } catch (e) {
+    console.error('AniLibria getTitleById error:', e);
     return null;
   }
 }
@@ -70,12 +91,13 @@ export async function getTitleById(id: number | string): Promise<any | null> {
 /** Search by text query */
 export async function searchTitles(query: string, limit = 10): Promise<any[]> {
   try {
-    const data = await fetchJson<any>(`${API_BASE}/app/search/releases?query=query&include=id%2Ctype.genres&exclude=poster%2Cdescription`, {
-      search: query,
+    const data = await fetchJson<any>(`${API_BASE}/app/search/releases`, {
+      query,
       limit: String(limit),
     });
     return Array.isArray(data) ? data : (data?.list ?? []);
-  } catch {
+  } catch (e) {
+    console.error('AniLibria searchTitles error:', e);
     return [];
   }
 }
@@ -83,58 +105,61 @@ export async function searchTitles(query: string, limit = 10): Promise<any[]> {
 /** Get all titles (paginated, for catalog) */
 export async function getTitles(page = 1, limit = 12): Promise<{ data: any[]; total: number }> {
   try {
-    const data = await fetchJson<any>(`${API_BASE}/title/list`, {
+    const data = await fetchJson<any>(`${API_BASE}/anime/releases`, {
       page: String(page),
-      items_per_page: String(limit),
+      limit: String(limit),
     });
     return {
       data: Array.isArray(data) ? data : (data?.list ?? []),
-      total: data?.pagination?.allItems ?? 0,
+      total: data?.pagination?.total ?? data?.meta?.total ?? 0,
     };
-  } catch {
+  } catch (e) {
+    console.error('AniLibria getTitles error:', e);
     return { data: [], total: 0 };
   }
 }
 
 /** Get HLS episodes directly from AniLibria title ID */
-export async function getHlsEpisodesByAnilibriaId(anilibriaId: number): Promise<PlayerSource[]> {
-  const title = await getTitleById(anilibriaId);
-  if (!title || !title.player) return [];
-  const shikiId = anilibriaId;
-  return extractHlsFromPlayer(shikiId, title.player);
-}
+export async function getHlsEpisodesByAnilibriaId(releaseId: number): Promise<PlayerSource[]> {
+  const title = await getTitleById(releaseId);
+  if (!title || !Array.isArray(title.episodes)) return [];
 
-function extractHlsFromPlayer(malId: number, player: any): PlayerSource[] {
-  const host: string = player.host ?? '';
-  const playlist: Record<string, any> = player.list ?? {};
+  const rawEpisodes = title.episodes as RawEpisode[];
 
-  return Object.entries(playlist)
-    .map(([epNum, epData]: [string, any]) => {
-      const hls = epData.hls ?? {};
-      const fhd = hls.fhd ? `https://${host}${hls.fhd}` : null;
-      const hd  = hls.hd  ? `https://${host}${hls.hd}` : null;
-      const sd  = hls.sd  ? `https://${host}${hls.sd}` : null;
+  return rawEpisodes
+    .map((ep) => {
+      const fhd = ep.hls_1080 ?? null;
+      const hd = ep.hls_720 ?? null;
+      const sd = ep.hls_480 ?? null;
       const bestUrl = fhd ?? hd ?? sd ?? '';
+
+      const previewPath = ep.preview?.optimized?.preview ?? ep.preview?.src ?? null;
+
       return {
-        id: `anilibria_${malId}_${epNum}`,
-        shikimoriId: malId,
-        episodeNumber: Number(epNum),
+        id: `anilibria_${releaseId}_${ep.ordinal}`,
+        shikimoriId: releaseId,
+        episodeNumber: Number(ep.ordinal),
+        name: ep.name,
         playerUrl: bestUrl,
         hls: { fhd, hd, sd },
+        preview: previewPath ? `${SITE_BASE}${previewPath}` : null,
+        duration: ep.duration,
+        skips: {
+          opening: ep.opening ? ([ep.opening.start, ep.opening.stop] as [number, number]) : undefined,
+          ending: ep.ending ? ([ep.ending.start, ep.ending.stop] as [number, number]) : undefined,
+        },
         quality: 'FHD',
         translation: 'AniLibria',
         player_type: 'HLS' as const,
       };
     })
-    .filter(s => s.playerUrl)
+    .filter((s) => s.playerUrl)
     .sort((a, b) => a.episodeNumber - b.episodeNumber);
 }
 
 /** Map AniLibria release to our standard AnimeRelease shape */
 export function mapRelease(r: any) {
-  const poster = r.poster?.optimized?.preview
-      ? SITE_BASE + r.poster.optimized.preview
-      : null;
+  const poster = r.poster?.optimized?.preview ? SITE_BASE + r.poster.optimized.preview : null;
 
   return {
     id: r.id,
@@ -148,10 +173,10 @@ export function mapRelease(r: any) {
     poster,
     isOngoing: r.is_ongoing,
     episodesTotal: r.episodes_total ?? null,
-    episodesCount: r.episodes_total ?? 0,
+    episodesCount: r.episodes_total ?? (Array.isArray(r.episodes) ? r.episodes.length : 0),
     favorites: r.added_in_users_favorites ?? 0,
-    ageRating: '',
-    genres: (r.genres ?? []).map(g => ({
+    ageRating: r.age_rating?.label ?? '',
+    genres: ((r.genres ?? []) as Genre[]).map((g) => ({
       id: g.id,
       name: g.name,
     })),

@@ -48,14 +48,12 @@ export async function animeRoutes(app: FastifyInstance) {
   // GET /api/anime/:id/episodes — AniLibria HLS sources
   app.get('/:id/episodes', async (req, reply) => {
     const { id } = req.params as { id: string };
-    // id can be AniLibria ID or Shikimori ID
-    const isShiki = req.query && (req.query as any).shikimori === '1';
-    let sources;
-    if (isShiki) {
-      sources = await anilibria.getHlsEpisodes(Number(id));
-    } else {
-      sources = await anilibria.getHlsEpisodesByAnilibriaId(Number(id));
+    const sources = await anilibria.getHlsEpisodesByAnilibriaId(Number(id));
+
+    if (!sources.length) {
+      return reply.status(404).send({ error: 'Эпизоды не найдены' });
     }
+
     return sources;
   });
 
