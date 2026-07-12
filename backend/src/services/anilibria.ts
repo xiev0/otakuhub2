@@ -32,23 +32,6 @@ async function fetchJson<T>(url: string, params?: Record<string, string>): Promi
   return res.json() as Promise<T>;
 }
 
-/** Find title by Shikimori / MAL ID */
-async function getByMalId(malId: number): Promise<any | null> {
-  try {
-    // AniLibria v3 search endpoint
-    const data = await fetchJson<any>(`${API_BASE}/title/search`, {
-      search: `shikimori_id:${malId}`,
-      filter: 'id,names,player,posters,type,status,description,genres',
-    });
-    const list = Array.isArray(data) ? data : (data?.list ?? []);
-    // Try exact match first
-    const exact = list.find((t: any) => t.names?.shikimori_id === malId || t.player?.shikimori_id === malId);
-    return exact ?? list[0] ?? null;
-  } catch {
-    return null;
-  }
-}
-
 /** Get latest releases (for home page) */
 export async function getLatestReleases(limit = 12): Promise<any[]> {
   try {
@@ -78,10 +61,7 @@ export async function getSchedule(): Promise<any[]> {
 /** Get a single title by its AniLibria ID */
 export async function getTitleById(id: number | string): Promise<any | null> {
   try {
-    return await fetchJson<any>(`${API_BASE}/title`, {
-      id: String(id),
-      filter: 'id,names,posters,type,status,season,description,genres,player,team,franchise,in_favorites',
-    });
+    return await fetchJson<any>(`${API_BASE}/anime/releases/${id}`);
   } catch {
     return null;
   }
@@ -90,7 +70,7 @@ export async function getTitleById(id: number | string): Promise<any | null> {
 /** Search by text query */
 export async function searchTitles(query: string, limit = 10): Promise<any[]> {
   try {
-    const data = await fetchJson<any>(`${API_BASE}/title/search`, {
+    const data = await fetchJson<any>(`${API_BASE}/app/search/releases?query=query&include=id%2Ctype.genres&exclude=poster%2Cdescription`, {
       search: query,
       limit: String(limit),
       filter: 'id,names,posters,type,status,season,genres',
@@ -118,18 +98,11 @@ export async function getTitles(page = 1, limit = 12): Promise<{ data: any[]; to
   }
 }
 
-/** Get HLS episode sources for Shikimori ID (main player method) */
-export async function getHlsEpisodes(malId: number): Promise<PlayerSource[]> {
-  const title = await getByMalId(malId);
-  if (!title || !title.player) return [];
-  return extractHlsFromPlayer(malId, title.player);
-}
-
 /** Get HLS episodes directly from AniLibria title ID */
 export async function getHlsEpisodesByAnilibriaId(anilibriaId: number): Promise<PlayerSource[]> {
   const title = await getTitleById(anilibriaId);
   if (!title || !title.player) return [];
-  const shikiId = title.names?.shikimori_id ?? anilibriaId;
+  const shikiId = anilibriaId;
   return extractHlsFromPlayer(shikiId, title.player);
 }
 
@@ -161,30 +134,31 @@ function extractHlsFromPlayer(malId: number, player: any): PlayerSource[] {
 
 /** Map AniLibria release to our standard AnimeRelease shape */
 export function mapRelease(r: any) {
-  const poster = r.posters?.original?.url
-    ? `https://anilibria.tv${r.posters.original.url}`
-    : r.posters?.medium?.url
-    ? `https://anilibria.tv${r.posters.medium.url}`
-    : null;
+  const poster = r.poster?.optimized?.preview
+      ? SITE_BASE + r.poster.optimized.preview
+      : null;
 
   return {
     id: r.id,
-    title: r.names?.ru ?? r.names?.en ?? String(r.id),
-    titleEnglish: r.names?.en ?? '',
-    alias: r.names?.alternative ?? '',
+    title: r.name?.main ?? r.name?.english ?? String(r.id),
+    titleEnglish: r.name?.english ?? '',
+    alias: r.alias ?? '',
     description: r.description ?? '',
-    type: r.type?.full_string ?? r.type?.string ?? 'ТВ Сериал',
-    year: r.season?.year ?? null,
-    season: r.season?.string ?? '',
+    type: r.type?.description ?? r.type?.string ?? 'ТВ Сериал',
+    year: r.year ?? null,
+    season: r.season?.description ?? '',
     poster,
-    isOngoing: r.status?.code === 1,
-    episodesTotal: r.type?.episodes ?? null,
-    episodesCount: r.type?.episodes ?? 0,
-    favorites: r.in_favorites ?? 0,
+    isOngoing: r.is_ongoing,
+    episodesTotal: r.episodes_total ?? null,
+    episodesCount: r.episodes_total ?? 0,
+    favorites: r.added_in_users_favorites ?? 0,
     ageRating: '',
-    genres: (r.genres ?? []).map((g: string, i: number) => ({ id: i, name: g })),
+    genres: (r.genres ?? []).map(g => ({
+      id: g.id,
+      name: g.name,
+    })),
     studios: [],
-    shikimoriId: r.names?.shikimori_id ?? null,
+    shikimoriId: null,
     anilibriaId: r.id,
     episodes: [],
     videos: [],
