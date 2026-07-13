@@ -120,6 +120,9 @@ export const animeApi = {
   getLatest: (limit = 6) =>
     request<AnimeRelease[]>(`/anime/latest?limit=${limit}`),
 
+  getRecommended: (limit = 6) =>
+      request<AnimeRelease[]>(`/anime/recommended?limit=${limit}`),
+
   getPopular: (limit = 6) =>
     request<AnimeRelease[]>(`/anime/popular?limit=${limit}`),
 

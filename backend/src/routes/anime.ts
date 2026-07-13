@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { db, schema } from '../db/client';
 import { eq, desc, and } from 'drizzle-orm';
 import * as anilibria from '../services/anilibria';
+import {getRecommendedReleases} from "../services/anilibria";
 
 export async function animeRoutes(app: FastifyInstance) {
 
@@ -21,6 +22,17 @@ export async function animeRoutes(app: FastifyInstance) {
       .sort((a: any, b: any) => (b.in_favorites ?? 0) - (a.in_favorites ?? 0))
       .slice(0, Number(limit))
       .map(anilibria.mapRelease);
+  });
+
+  // GET /api/anime/recommended
+  app.get('/recommended', async (req, reply) => {
+    const { limit = '12' } = req.query as { limit?: string };
+    // AniLibria doesn't have a dedicated popular endpoint, use high-favorites from updates
+    const releases = await anilibria.getRecommendedReleases(Number(limit) * 3);
+    return releases
+        .sort((a: any, b: any) => (b.in_favorites ?? 0) - (a.in_favorites ?? 0))
+        .slice(0, Number(limit))
+        .map(anilibria.mapRelease);
   });
 
   // GET /api/anime/schedule

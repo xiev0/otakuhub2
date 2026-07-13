@@ -52,10 +52,23 @@ async function fetchJson<T>(url: string, params?: Record<string, string>): Promi
   return res.json() as Promise<T>;
 }
 
-/** Get latest releases (for home page) */
+/** Последние релизы */
 export async function getLatestReleases(limit = 12): Promise<any[]> {
   try {
     const data = await fetchJson<any>(`${API_BASE}/anime/releases/latest`, {
+      limit: String(limit),
+    });
+    return Array.isArray(data) ? data : (data?.list ?? []);
+  } catch (e) {
+    console.error('AniLibria getLatestReleases error:', e);
+    return [];
+  }
+}
+
+/** Рекомендованные релизы */
+export async function getRecommendedReleases(limit = 12): Promise<any[]> {
+  try {
+    const data = await fetchJson<any>(`${API_BASE}/anime/releases/recommended`, {
       limit: String(limit),
     });
     return Array.isArray(data) ? data : (data?.list ?? []);
