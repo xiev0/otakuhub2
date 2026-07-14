@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify';
 import { db, schema } from '../db/client';
 import { eq, desc, and } from 'drizzle-orm';
 import * as anilibria from '../services/anilibria';
-import {getRecommendedReleases} from "../services/anilibria";
 
 export async function animeRoutes(app: FastifyInstance) {
 
