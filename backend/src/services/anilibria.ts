@@ -65,19 +65,6 @@ export async function getLatestReleases(limit = 12): Promise<any[]> {
   }
 }
 
-/** Рекомендованные релизы */
-export async function getRecommendedReleases(limit = 12): Promise<any[]> {
-  try {
-    const data = await fetchJson<any>(`${API_BASE}/anime/releases/recommended`, {
-      limit: String(limit),
-    });
-    return Array.isArray(data) ? data : (data?.list ?? []);
-  } catch (e) {
-    console.error('AniLibria getLatestReleases error:', e);
-    return [];
-  }
-}
-
 /** Рандомные релизы */
 export async function getRandomReleases(limit = 12): Promise<any[]> {
   try {
@@ -87,6 +74,19 @@ export async function getRandomReleases(limit = 12): Promise<any[]> {
     return Array.isArray(data) ? data : (data?.list ?? []);
   } catch (e) {
     console.error('AniLibria getLatestReleases error:', e);
+    return [];
+  }
+}
+
+/** Рекомендованные */
+export async function getRecommendedReleases(limit = 12): Promise<any[]> {
+  try {
+    const data = await fetchJson<any>(`${API_BASE}/anime/releases/recommended`, {
+      limit: String(limit),
+    });
+    return Array.isArray(data) ? data : (data?.list ?? []);
+  } catch (e) {
+    console.error('AniLibria getRecommendedReleases error:', e);
     return [];
   }
 }
