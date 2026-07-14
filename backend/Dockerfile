@@ -4,4 +4,4 @@ COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 COPY . .
 EXPOSE 8000
-CMD ["bun", "run", "index.ts"]
+CMD ["bun", "run", "start"]
