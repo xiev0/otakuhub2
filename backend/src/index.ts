@@ -1,13 +1,15 @@
+console.log("👉 [1] Файл index.ts начал выполняться...");
+
 import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import multipart from '@fastify/multipart';
-import path from 'path';
-
 import { animeRoutes } from './routes/anime';
 import { authRoutes } from './routes/auth';
 import { userRoutes } from './routes/user';
+
+console.log("👉 [2] Импорты прошли успешно, создаем Fastify...");
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 
@@ -36,6 +38,8 @@ await app.register(userRoutes,  { prefix: '/api/user' });
 app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
 // ─── Start ───
+console.log("👉 [3] Плагины и роуты зарегистрированы, запускаем сервер...");
+
 const PORT = Number(process.env.PORT ?? 8000);
 const HOST = process.env.HOST ?? '0.0.0.0';
 
