@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { animeApi, type AnimeRelease } from '../../services/api';
 import AnimeCard from '../../components/AnimeCard/AnimeCard';
 import styles from './Home.module.css';
+import openingVideo from '../../assets/opening.mp4';
 
 export default function Home() {
   const [latest, setLatest] = useState<AnimeRelease[]>([]);
@@ -28,43 +29,21 @@ export default function Home() {
   return (
     <div className={styles.page}>
       {/* ─── Hero Banner ─── */}
-      {hero && (
-        <section className={styles.hero}>
-          <div
-            className={styles.heroBg}
-            style={{ backgroundImage: `url(${hero.poster})` }}
-          />
-          <div className={styles.heroOverlay} />
-          <div className={styles.heroContent}>
-            <span className={styles.heroType}>{hero.type}</span>
-            <h1 className={styles.heroTitle}>{hero.title}</h1>
-            {hero.description && (
-              <p className={styles.heroDesc}>
-                {hero.description.length > 200
-                  ? hero.description.slice(0, 200) + '...'
-                  : hero.description}
-              </p>
-            )}
-            <div className={styles.heroMeta}>
-              {hero.year && <span>{hero.year}</span>}
-              {hero.genres.slice(0, 3).map(g => (
-                <span key={g.id} className={styles.heroGenre}>{g.name}</span>
-              ))}
-            </div>
-            <div className={styles.heroActions}>
-              <Link to={`/anime/${hero.id}`} className={styles.watchBtn}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-                Смотреть
-              </Link>
-              {hero.isOngoing && (
-                <span className={styles.ongoingBadge}>● Онгоинг</span>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
+      <div className={styles.heroBanner}>
+        <video
+            className={styles.heroVideo}
+            src={openingVideo}
+            autoPlay
+            muted
+            loop
+            playsInline
+        />
+        <div className={styles.heroOverlay} />
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>Aniki</h1>
+          <p className={styles.heroSubtitle}>Твоя вселенная аниме</p>
+        </div>
+      </div>
 
       <div className={styles.container}>
         {/* ─── Schedule ─── */}
