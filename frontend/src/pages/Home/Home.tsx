@@ -6,7 +6,6 @@ import styles from './Home.module.css';
 import openingVideo from '../../assets/opening.mp4';
 
 export default function Home() {
-  const [latest, setLatest] = useState<AnimeRelease[]>([]);
   const [popular, setPopular] = useState<AnimeRelease[]>([]);
   const [recommendations, setRecommendations] = useState<AnimeRelease[]>([]);
   const [schedule, setSchedule] = useState<AnimeRelease[]>([]);
@@ -14,20 +13,22 @@ export default function Home() {
   const [random, setRandom] = useState<AnimeRelease[]>([]);
 
   useEffect(() => {
-    Promise.all([
-      animeApi.getLatest(6),
+    Promise.allSettled([
       animeApi.getPopular(6),
       animeApi.getRecommendations(6),
       animeApi.getSchedule(),
-        animeApi.getRandom(6),
-    ]).then(([lat, pop, ran, rec, sch]) => {
-      setLatest(lat);
-      setPopular(pop);
-      setRecommendations(rec);
-      setRandom(ran);
-      setSchedule(sch.slice(0, 7));
-    }).catch(console.error)
-      .finally(() => setLoading(false));
+      animeApi.getRandom(6),
+    ]).then(([pop, rec, sch, ran]) => {
+      if (pop.status === 'fulfilled') setPopular(pop.value);
+      if (rec.status === 'fulfilled') setRecommendations(rec.value);
+      if (sch.status === 'fulfilled') setSchedule(sch.value.slice(0, 7));
+      if (ran.status === 'fulfilled') setRandom(ran.value);
+
+      // залогируем те, что реально упали, чтобы видеть причину в консоли
+      [pop, rec, sch, ran].forEach(r => {
+        if (r.status === 'rejected') console.error(r.reason);
+      });
+    }).finally(() => setLoading(false));
   }, []);
 
   return (
@@ -141,27 +142,6 @@ export default function Home() {
               )}
             </section>
         )}
-
-        {/* ─── Latest ─── */}
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-            </svg>
-            Последние обновления
-          </h2>
-          {loading ? (
-            <div className={styles.row}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className={styles.skeleton} />
-              ))}
-            </div>
-          ) : (
-            <div className={styles.row}>
-              {latest.map(a => <AnimeCard key={a.id} anime={a} />)}
-            </div>
-          )}
-        </section>
       </div>
     </div>
   );
