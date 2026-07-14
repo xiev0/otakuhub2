@@ -23,6 +23,17 @@ export async function animeRoutes(app: FastifyInstance) {
       .map(anilibria.mapRelease);
   });
 
+  // GET /api/anime/random
+  app.get('/random', async (req, reply) => {
+    const { limit = '12' } = req.query as { limit?: string };
+    // AniLibria doesn't have a dedicated popular endpoint, use high-favorites from updates
+    const releases = await anilibria.getRandomReleases(Number(limit) * 3);
+    return releases
+        .sort((a: any, b: any) => (b.in_favorites ?? 0) - (a.in_favorites ?? 0))
+        .slice(0, Number(limit))
+        .map(anilibria.mapRelease);
+  });
+
   // GET /api/anime/recommended
   app.get('/recommended', async (req, reply) => {
     const { limit = '12' } = req.query as { limit?: string };

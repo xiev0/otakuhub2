@@ -78,6 +78,19 @@ export async function getRecommendedReleases(limit = 12): Promise<any[]> {
   }
 }
 
+/** Рандомные релизы */
+export async function getRandomReleases(limit = 12): Promise<any[]> {
+  try {
+    const data = await fetchJson<any>(`${API_BASE}/anime/releases/random`, {
+      limit: String(limit),
+    });
+    return Array.isArray(data) ? data : (data?.list ?? []);
+  } catch (e) {
+    console.error('AniLibria getLatestReleases error:', e);
+    return [];
+  }
+}
+
 /** Get schedule (for this week) */
 export async function getSchedule(): Promise<any[]> {
   try {
