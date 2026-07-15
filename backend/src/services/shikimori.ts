@@ -1,24 +1,11 @@
+// ---------- Конфигурация ----------
 const API_BASE = 'https://shikimori.io';
 const IMAGE_BASE = 'https://shikimori.io';
 
-// Общий формат для фронта
-interface AnimeRelease {
-    id: number | string;
-    title: string;
-    titleRussian: string;
-    poster: string | null;
-    url: string;
-    kind: string;
-    score: number;
-    status: string;
-    isOngoing: boolean;
-    episodesTotal: number;
-    episodesAired: number;
-    airedOn: string | null;
-    releasedOn: string | null;
-    source: 'shikimori' | 'anilibria';
-}
+// ---------- Общий формат для фронта (должен совпадать с AnimeRelease из api.ts) ----------
+import type { AnimeRelease } from '../types'; // путь подставь свой реальный
 
+// ---------- Сырые типы: список (/api/animes) ----------
 interface ShikimoriImage {
     original: string;
     preview: string;
@@ -33,7 +20,7 @@ interface RawShikimoriAnime {
     image: ShikimoriImage;
     url: string;
     kind: string;
-    score: string; // строка!
+    score: string;
     status: string;
     episodes: number;
     episodes_aired: number;
@@ -41,6 +28,32 @@ interface RawShikimoriAnime {
     released_on: string | null;
 }
 
+// ---------- Сырые типы: детальная карточка (/api/animes/:id) ----------
+interface RawShikimoriGenre {
+    id: number;
+    name: string;
+    russian: string;
+    kind: string;
+}
+
+interface RawShikimoriStudio {
+    id: number;
+    name: string;
+    filtered_name: string;
+    real: boolean;
+    image: string | null;
+}
+
+interface RawShikimoriAnimeDetail extends RawShikimoriAnime {
+    rating: string;
+    description: string | null;
+    genres: RawShikimoriGenre[];
+    studios: RawShikimoriStudio[];
+    duration: number;
+    franchise: string | null;
+}
+
+// ---------- Обёртка над fetch ----------
 async function fetchJson<T>(url: string, params?: Record<string, string>): Promise<T> {
     const u = new URL(url);
     if (params) Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, v));
@@ -52,26 +65,60 @@ async function fetchJson<T>(url: string, params?: Record<string, string>): Promi
     return res.json() as Promise<T>;
 }
 
-export function mapShikimoriRelease(r: RawShikimoriAnime): AnimeRelease {
+// ---------- Мапперы ----------
+function mapShikimoriRelease(r: RawShikimoriAnime): AnimeRelease {
     return {
         id: r.id,
-        title: r.name,
-        titleRussian: r.russian ?? '',
+        title: r.russian || r.name,
+        titleEnglish: r.name ?? '',
+        alias: r.url?.split('/').pop() ?? '',
+        description: '',
+        type: r.kind ?? '',
+        year: r.aired_on ? new Date(r.aired_on).getFullYear() : null,
+        season: '',
         poster: r.image?.original ? `${IMAGE_BASE}${r.image.original}` : null,
-        url: r.url ?? '',
-        kind: r.kind ?? '',
-        score: r.score ? Number(r.score) : 0,
-        status: r.status ?? '',
         isOngoing: r.status === 'ongoing',
-        episodesTotal: r.episodes ?? 0,
-        episodesAired: r.episodes_aired ?? 0,
-        airedOn: r.aired_on,
-        releasedOn: r.released_on,
-        source: 'shikimori',
+        episodesTotal: r.episodes || null,
+        episodesCount: r.episodes_aired ?? 0,
+        favorites: 0,
+        ageRating: '',
+        genres: [],
+        studios: [],
+        shikimoriId: r.id,
+        anilibriaId: undefined,
+        episodes: [],
+        videos: [],
+        screenshots: [],
     };
 }
 
-// Получение фильмов
+function mapShikimoriDetail(r: RawShikimoriAnimeDetail): AnimeRelease {
+    return {
+        id: r.id,
+        title: r.russian || r.name,
+        titleEnglish: r.name ?? '',
+        alias: r.url?.split('/').pop() ?? '',
+        description: r.description ?? '',
+        type: r.kind ?? '',
+        year: r.aired_on ? new Date(r.aired_on).getFullYear() : null,
+        season: '',
+        poster: r.image?.original ? `${IMAGE_BASE}${r.image.original}` : null,
+        isOngoing: r.status === 'ongoing',
+        episodesTotal: r.episodes || null,
+        episodesCount: r.episodes_aired ?? 0,
+        favorites: 0,
+        ageRating: r.rating ?? '',
+        genres: (r.genres ?? []).map(g => ({ id: g.id, name: g.russian || g.name })),
+        studios: (r.studios ?? []).map(s => ({ id: s.id, name: s.name })),
+        shikimoriId: r.id,
+        anilibriaId: undefined,
+        episodes: [],
+        videos: [],
+        screenshots: [],
+    };
+}
+
+// ---------- Публичные функции ----------
 export async function getMovie(limit = 12): Promise<AnimeRelease[]> {
     try {
         const data = await fetchJson<RawShikimoriAnime[]>(`${API_BASE}/api/animes`, {
@@ -82,5 +129,28 @@ export async function getMovie(limit = 12): Promise<AnimeRelease[]> {
     } catch (e) {
         console.error('Shikimori getMovie error:', e);
         return [];
+    }
+}
+
+export async function getRandom(limit = 12): Promise<AnimeRelease[]> {
+    try {
+        const data = await fetchJson<RawShikimoriAnime[]>(`${API_BASE}/api/animes`, {
+            limit: String(limit),
+            order: 'random',
+        });
+        return Array.isArray(data) ? data.map(mapShikimoriRelease) : [];
+    } catch (e) {
+        console.error('Shikimori getRandom error:', e);
+        return [];
+    }
+}
+
+export async function getTitleById(id: number | string): Promise<AnimeRelease | null> {
+    try {
+        const data = await fetchJson<RawShikimoriAnimeDetail>(`${API_BASE}/api/animes/${id}`);
+        return mapShikimoriDetail(data);
+    } catch (e) {
+        console.error('Shikimori getTitleById error:', e);
+        return null;
     }
 }

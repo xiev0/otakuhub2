@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { db, schema } from '../db/client';
 import { eq, desc, and } from 'drizzle-orm';
 import * as anilibria from '../services/anilibria';
+import * as shikimori from '../services/shikimori';
 
 export async function animeRoutes(app: FastifyInstance) {
 
@@ -10,6 +11,13 @@ export async function animeRoutes(app: FastifyInstance) {
     const { limit = '12' } = req.query as { limit?: string };
     const releases = await anilibria.getLatestReleases(Number(limit));
     return releases.map(anilibria.mapRelease);
+  });
+
+// GET /api/anime/movie
+  app.get('/movie', async (req, reply) => {
+    const { limit = '12' } = req.query as { limit?: string };
+    const releases = await shikimori.getMovie(Number(limit));
+    return releases;
   });
 
   // GET /api/anime/popular

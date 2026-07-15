@@ -116,6 +116,9 @@ export const animeApi = {
   getLatest: (limit = 6) =>
     request<AnimeRelease[]>(`/anime/latest?limit=${limit}`),
 
+  getMovie: (limit = 6) =>
+      request<AnimeRelease[]>(`/anime/movie?limit=${limit}`),
+
   getRandom: (limit = 6) =>
       request<AnimeRelease[]>(`/anime/random?limit=${limit}`),
 
