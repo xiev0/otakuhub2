@@ -1,4 +1,23 @@
 const API_BASE = 'https://shikimori.io';
+const IMAGE_BASE = 'https://shikimori.io';
+
+// Общий формат для фронта
+interface AnimeRelease {
+    id: number | string;
+    title: string;
+    titleRussian: string;
+    poster: string | null;
+    url: string;
+    kind: string;
+    score: number;
+    status: string;
+    isOngoing: boolean;
+    episodesTotal: number;
+    episodesAired: number;
+    airedOn: string | null;
+    releasedOn: string | null;
+    source: 'shikimori' | 'anilibria';
+}
 
 interface ShikimoriImage {
     original: string;
@@ -13,9 +32,9 @@ interface RawShikimoriAnime {
     russian: string;
     image: ShikimoriImage;
     url: string;
-    kind: string; // 'tv' | 'movie' | 'ova' | 'ona' | 'special' и т.д.
-    score: string; // важно: это СТРОКА, не число!
-    status: string; // 'released' | 'ongoing' | 'anons'
+    kind: string;
+    score: string; // строка!
+    status: string;
     episodes: number;
     episodes_aired: number;
     aired_on: string | null;
@@ -33,14 +52,33 @@ async function fetchJson<T>(url: string, params?: Record<string, string>): Promi
     return res.json() as Promise<T>;
 }
 
-//Получение фильмов
-export async function getMovie(limit = 12): Promise<any[]> {
+export function mapShikimoriRelease(r: RawShikimoriAnime): AnimeRelease {
+    return {
+        id: r.id,
+        title: r.name,
+        titleRussian: r.russian ?? '',
+        poster: r.image?.original ? `${IMAGE_BASE}${r.image.original}` : null,
+        url: r.url ?? '',
+        kind: r.kind ?? '',
+        score: r.score ? Number(r.score) : 0,
+        status: r.status ?? '',
+        isOngoing: r.status === 'ongoing',
+        episodesTotal: r.episodes ?? 0,
+        episodesAired: r.episodes_aired ?? 0,
+        airedOn: r.aired_on,
+        releasedOn: r.released_on,
+        source: 'shikimori',
+    };
+}
+
+// Получение фильмов
+export async function getMovie(limit = 12): Promise<AnimeRelease[]> {
     try {
-        const data = await fetchJson<any>(`${API_BASE}/api/animes`, {
+        const data = await fetchJson<RawShikimoriAnime[]>(`${API_BASE}/api/animes`, {
             limit: String(limit),
             kind: 'movie',
         });
-        return Array.isArray(data) ? data : (data?.list ?? []);
+        return Array.isArray(data) ? data.map(mapShikimoriRelease) : [];
     } catch (e) {
         console.error('Shikimori getMovie error:', e);
         return [];
