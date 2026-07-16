@@ -85,3 +85,10 @@ export const animeRatings = pgTable('anime_ratings', {
 }, (t) => ({
   uniqUserRating: uniqueIndex('uniq_user_rating').on(t.userId, t.releaseId),
 }));
+
+
+export const posterCache = pgTable('poster_cache', {
+  malId: integer('mal_id').primaryKey(),
+  posterUrl: text('poster_url'),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});

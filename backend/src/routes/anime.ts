@@ -3,41 +3,31 @@ import { db, schema } from '../db/client';
 import { eq, desc, and } from 'drizzle-orm';
 import * as anilibria from '../services/anilibria';
 import * as shikimori from '../services/shikimori';
+import * as kodik from '../services/kodik';
+import * as malibria from '../services/malibria';
 
 export async function animeRoutes(app: FastifyInstance) {
 
-  // GET /api/anime/latest
   app.get('/latest', async (req, reply) => {
     const { limit = '12' } = req.query as { limit?: string };
-    const releases = await anilibria.getLatestReleases(Number(limit));
-    return releases.map(anilibria.mapRelease);
+    return await shikimori.getLatest(Number(limit));
   });
 
-// GET /api/anime/movie
   app.get('/movie', async (req, reply) => {
     const { limit = '12' } = req.query as { limit?: string };
     const releases = await shikimori.getMovie(Number(limit));
     return releases;
   });
 
-  // GET /api/anime/popular
   app.get('/popular', async (req, reply) => {
     const { limit = '12' } = req.query as { limit?: string };
-    // AniLibria doesn't have a dedicated popular endpoint, use high-favorites from updates
-    const releases = await anilibria.getLatestReleases(Number(limit) * 3);
-    return releases
-      .sort((a: any, b: any) => (b.in_favorites ?? 0) - (a.in_favorites ?? 0))
-      .slice(0, Number(limit))
-      .map(anilibria.mapRelease);
+    return await shikimori.getPopular(Number(limit));
   });
 
-  // GET /api/anime/random
-    app.get('/random', async (req, reply) => {
-      const { limit = '12' } = req.query as { limit?: string };
-      const releases = await anilibria.getRandomReleases(Number(limit));
-      return releases.map(anilibria.mapRelease);
-    });
-
+  app.get('/random', async (req, reply) => {
+    const { limit = '12' } = req.query as { limit?: string };
+    return await shikimori.getRandom(Number(limit));
+  });
 // GET /api/anime/recommendations
   app.get('/recommendations', async (req, reply) => {
     const { limit = '12' } = req.query as { limit?: string };
@@ -45,38 +35,45 @@ export async function animeRoutes(app: FastifyInstance) {
     return releases.map(anilibria.mapRelease);
   });
 
-  // GET /api/anime/schedule
   app.get('/schedule', async () => {
-    const data = await anilibria.getSchedule();
-    return data.map(anilibria.mapRelease);
+    return await shikimori.getSchedule();
   });
 
-  // GET /api/anime/search?q=...&limit=10
   app.get('/search', async (req) => {
     const { q = '', limit = '10' } = req.query as { q?: string; limit?: string };
     if (!q.trim()) return [];
-    const results = await anilibria.searchTitles(q, Number(limit));
-    return results.map(anilibria.mapRelease);
+    return await shikimori.searchTitles(q, Number(limit));
   });
 
-  // GET /api/anime/:id  — anime detail
+// GET /api/anime/:id  — теперь id это Шикимори id
   app.get('/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
-    const title = await anilibria.getTitleById(id);
-    if (!title) return reply.status(404).send({ error: 'Not found' });
-    return anilibria.mapRelease(title);
+    const release = await shikimori.getTitleById(id);
+    if (!release) return reply.status(404).send({ error: 'Not found' });
+    return release;
   });
 
-  // GET /api/anime/:id/episodes — AniLibria HLS sources
+// GET /api/anime/:id/episodes — Шикимори id на входе, возвращает оба источника плеера
   app.get('/:id/episodes', async (req, reply) => {
     const { id } = req.params as { id: string };
-    const sources = await anilibria.getHlsEpisodesByAnilibriaId(Number(id));
 
-    if (!sources.length) {
-      return reply.status(404).send({ error: 'Эпизоды не найдены' });
+    const [anilibriaId, kodikSources] = await Promise.all([
+      malibria.getAnilibriaIdByShikimori(Number(id)),
+      kodik.getKodikSourcesByShikimoriId(id),
+    ]);
+
+    const anilibriaSources = anilibriaId
+        ? await anilibria.getHlsEpisodesByAnilibriaId(anilibriaId)
+        : [];
+
+    if (!anilibriaSources.length && !kodikSources.length) {
+      return reply.status(404).send({ error: 'Эпизоды не найдены ни в одном источнике' });
     }
 
-    return sources;
+    return {
+      anilibria: anilibriaSources.length ? anilibriaSources : null,
+      kodik: kodikSources.length ? kodikSources : null,
+    };
   });
 
   // GET /api/anime/:id/comments

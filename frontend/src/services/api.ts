@@ -111,6 +111,21 @@ export interface Comment {
   createdAt: string;
 }
 
+export interface KodikSource {
+  id: string;
+  playerUrl: string;
+  translation: string;
+  translationType: 'voice' | 'subtitles';
+  episodesCount: number;
+  quality: string;
+  screenshots: string[];
+}
+
+export interface EpisodesResponse {
+  anilibria: PlayerSource[] | null;
+  kodik: KodikSource[] | null;
+}
+
 // ─── Anime API ─────────────────────────────────────────────────────────
 export const animeApi = {
   getLatest: (limit = 6) =>
@@ -137,8 +152,8 @@ export const animeApi = {
   getRelease: (id: string | number) =>
     request<AnimeRelease>(`/anime/${id}`),
 
-  getEpisodes: (id: string | number, shikimori = false) =>
-    request<PlayerSource[]>(`/anime/${id}/episodes${shikimori ? '?shikimori=1' : ''}`),
+  getEpisodes: (id: string | number) =>
+      request<EpisodesResponse>(`/anime/${id}/episodes`),
 
   getComments: (id: number) =>
     request<Comment[]>(`/anime/${id}/comments`),

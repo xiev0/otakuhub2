@@ -1,9 +1,32 @@
-// ---------- Конфигурация ----------
+import { resolvePosters } from './posters';
+
 const API_BASE = 'https://shikimori.io';
 const IMAGE_BASE = 'https://shikimori.io';
 
-// ---------- Общий формат для фронта (должен совпадать с AnimeRelease из api.ts) ----------
-import type { AnimeRelease } from '../types'; // путь подставь свой реальный
+// ---------- Общий формат (должен быть идентичен AnimeRelease из frontend/src/services/api.ts) ----------
+export interface AnimeRelease {
+    id: number;
+    title: string;
+    titleEnglish: string;
+    alias: string;
+    description: string;
+    type: string;
+    year: number | null;
+    season: string;
+    poster: string | null;
+    isOngoing: boolean;
+    episodesTotal: number | null;
+    episodesCount: number;
+    favorites: number;
+    ageRating: string;
+    genres: { id: number; name: string }[];
+    studios: { id: number; name: string }[];
+    shikimoriId?: number | null;
+    anilibriaId?: number;
+    episodes: any[];
+    videos: any[];
+    screenshots: any[];
+}
 
 // ---------- Сырые типы: список (/api/animes) ----------
 interface ShikimoriImage {
@@ -53,7 +76,7 @@ interface RawShikimoriAnimeDetail extends RawShikimoriAnime {
     franchise: string | null;
 }
 
-// ---------- Обёртка над fetch ----------
+// ---------- fetch-обёртка ----------
 async function fetchJson<T>(url: string, params?: Record<string, string>): Promise<T> {
     const u = new URL(url);
     if (params) Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, v));
@@ -118,37 +141,102 @@ function mapShikimoriDetail(r: RawShikimoriAnimeDetail): AnimeRelease {
     };
 }
 
+/** Общий шаг: смапить список + подтянуть постеры с AniList поверх */
+async function mapListWithPosters(raw: RawShikimoriAnime[]): Promise<AnimeRelease[]> {
+    const releases = raw.map(mapShikimoriRelease);
+    const posters = await resolvePosters(raw.map(r => r.id));
+    return releases.map(r => ({
+        ...r,
+        poster: posters.get(r.id as number) ?? r.poster,
+    }));
+}
+
 // ---------- Публичные функции ----------
 export async function getMovie(limit = 12): Promise<AnimeRelease[]> {
     try {
-        const data = await fetchJson<RawShikimoriAnime[]>(`${API_BASE}/api/animes`, {
+        const raw = await fetchJson<RawShikimoriAnime[]>(`${API_BASE}/api/animes`, {
             limit: String(limit),
             kind: 'movie',
         });
-        return Array.isArray(data) ? data.map(mapShikimoriRelease) : [];
+        return Array.isArray(raw) ? await mapListWithPosters(raw) : [];
     } catch (e) {
         console.error('Shikimori getMovie error:', e);
         return [];
     }
 }
 
+export async function getPopular(limit = 12): Promise<AnimeRelease[]> {
+    try {
+        const raw = await fetchJson<RawShikimoriAnime[]>(`${API_BASE}/api/animes`, {
+            limit: String(limit),
+            order: 'popularity',
+        });
+        return Array.isArray(raw) ? await mapListWithPosters(raw) : [];
+    } catch (e) {
+        console.error('Shikimori getPopular error:', e);
+        return [];
+    }
+}
+
 export async function getRandom(limit = 12): Promise<AnimeRelease[]> {
     try {
-        const data = await fetchJson<RawShikimoriAnime[]>(`${API_BASE}/api/animes`, {
+        const raw = await fetchJson<RawShikimoriAnime[]>(`${API_BASE}/api/animes`, {
             limit: String(limit),
             order: 'random',
         });
-        return Array.isArray(data) ? data.map(mapShikimoriRelease) : [];
+        return Array.isArray(raw) ? await mapListWithPosters(raw) : [];
     } catch (e) {
         console.error('Shikimori getRandom error:', e);
         return [];
     }
 }
 
+export async function getLatest(limit = 12): Promise<AnimeRelease[]> {
+    try {
+        const raw = await fetchJson<RawShikimoriAnime[]>(`${API_BASE}/api/animes`, {
+            limit: String(limit),
+            order: 'updated_at', // проверь через curl — возможно "recently" или другое имя
+            status: 'ongoing',
+        });
+        return Array.isArray(raw) ? await mapListWithPosters(raw) : [];
+    } catch (e) {
+        console.error('Shikimori getLatest error:', e);
+        return [];
+    }
+}
+
+export async function getSchedule(): Promise<AnimeRelease[]> {
+    try {
+        const raw = await fetchJson<any[]>(`${API_BASE}/api/calendar`);
+        // /api/calendar отдаёт другой формат — { next_episode_at, anime: {...} }[], а не список Anime напрямую
+        // нужно свериться через curl прежде чем писать маппинг
+        const animeList = raw.map(item => item.anime).filter(Boolean);
+        return await mapListWithPosters(animeList);
+    } catch (e) {
+        console.error('Shikimori getSchedule error:', e);
+        return [];
+    }
+}
+
+export async function searchTitles(query: string, limit = 10): Promise<AnimeRelease[]> {
+    try {
+        const raw = await fetchJson<RawShikimoriAnime[]>(`${API_BASE}/api/animes`, {
+            search: query,
+            limit: String(limit),
+        });
+        return Array.isArray(raw) ? await mapListWithPosters(raw) : [];
+    } catch (e) {
+        console.error('Shikimori searchTitles error:', e);
+        return [];
+    }
+}
+
 export async function getTitleById(id: number | string): Promise<AnimeRelease | null> {
     try {
-        const data = await fetchJson<RawShikimoriAnimeDetail>(`${API_BASE}/api/animes/${id}`);
-        return mapShikimoriDetail(data);
+        const raw = await fetchJson<RawShikimoriAnimeDetail>(`${API_BASE}/api/animes/${id}`);
+        const release = mapShikimoriDetail(raw);
+        const posters = await resolvePosters([raw.id]);
+        return { ...release, poster: posters.get(raw.id) ?? release.poster };
     } catch (e) {
         console.error('Shikimori getTitleById error:', e);
         return null;
