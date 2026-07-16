@@ -72,7 +72,7 @@
 }
 .input:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-glow);
+  box-shadow: 0 0 0 1px var(--color-accent);
 }
 .input::placeholder { color: var(--color-text-muted); }
 
@@ -107,8 +107,8 @@
 .submit {
   width: 100%;
   padding: 13px;
-  background: var(--color-accent);
-  color: #000;
+  background: #ffffff;
+  color: #000000;
   font-weight: 700;
   font-size: 0.95rem;
   border-radius: var(--radius-md);
@@ -117,26 +117,26 @@
   margin-top: var(--space-sm);
   transition: all var(--transition-fast);
 }
-.submit:hover { box-shadow: 0 0 24px var(--color-accent-glow-strong); transform: translateY(-1px); }
+.submit:hover { opacity: 0.9; }
 .submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .error {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-md);
   padding: 10px 14px;
   font-size: 0.85rem;
-  color: var(--color-error);
+  color: var(--color-text);
   margin-bottom: var(--space-md);
 }
 
 .successMsg {
-  background: rgba(74, 222, 128, 0.1);
-  border: 1px solid rgba(74, 222, 128, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-md);
   padding: 14px;
   font-size: 0.88rem;
-  color: var(--color-success);
+  color: var(--color-text);
   text-align: center;
   margin-bottom: var(--space-lg);
 }

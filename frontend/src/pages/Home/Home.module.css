@@ -25,9 +25,9 @@
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(10,10,10,1) 0%,
-    rgba(10,10,10,0.7) 40%,
-    rgba(10,10,10,0.2) 100%
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.7) 40%,
+    rgba(0, 0, 0, 0.2) 100%
   );
 }
 
@@ -42,8 +42,9 @@
 
 .heroType {
   display: inline-block;
-  background: var(--color-accent);
-  color: #000;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   font-size: 0.75rem;
   font-weight: 700;
   padding: 3px 10px;
@@ -82,10 +83,10 @@
 }
 
 .heroGenre {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.05);
   padding: 2px 10px;
   border-radius: var(--radius-full);
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .heroActions { display: flex; align-items: center; gap: var(--space-md); }
@@ -95,23 +96,26 @@
   align-items: center;
   gap: var(--space-sm);
   padding: 12px 28px;
-  background: var(--color-accent);
-  color: #000;
+  background: #ffffff;
+  color: #000000;
   font-weight: 700;
   font-size: 0.95rem;
   border-radius: var(--radius-full);
   transition: all var(--transition-fast);
 }
 .watchBtn:hover {
-  box-shadow: 0 0 30px var(--color-accent-glow-strong);
-  transform: translateY(-1px);
-  color: #000;
+  opacity: 0.9;
+  color: #000000;
 }
 
 .ongoingBadge {
   font-size: 0.85rem;
-  color: var(--color-success);
+  color: var(--color-text);
   font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* ─── Container ─── */
@@ -140,7 +144,7 @@
   color: var(--color-text);
   margin-bottom: var(--space-lg);
 }
-.sectionTitle svg { color: var(--color-accent); }
+.sectionTitle svg { color: var(--color-text-secondary); }
 
 /* ─── Schedule Strip ─── */
 .scheduleRow {
@@ -161,7 +165,7 @@
   text-decoration: none;
   transition: transform var(--transition-fast);
 }
-.scheduleItem:hover { transform: translateY(-3px); }
+.scheduleItem:hover { opacity: 0.8; }
 
 .schedulePoster {
   width: 100px;
@@ -171,7 +175,7 @@
   border: 2px solid transparent;
   transition: border-color var(--transition-fast);
 }
-.scheduleItem:hover .schedulePoster { border-color: var(--color-accent); }
+.scheduleItem:hover .schedulePoster { border-color: rgba(255, 255, 255, 0.2); }
 
 .scheduleTitle {
   font-size: 0.75rem;
@@ -243,9 +247,9 @@
   inset: 0;
   background: linear-gradient(
           to bottom,
-          rgba(13, 13, 18, 0.15) 0%,
-          rgba(13, 13, 18, 0.55) 65%,
-          #0d0d12 100%
+          rgba(0, 0, 0, 0.15) 0%,
+          rgba(0, 0, 0, 0.55) 65%,
+          #000000 100%
   );
 }
 

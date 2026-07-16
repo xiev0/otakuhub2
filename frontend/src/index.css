@@ -1,31 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   /* Colors */
-  --color-bg: #0a0a0a;
-  --color-bg-secondary: #111111;
-  --color-surface: #1a1a1a;
-  --color-surface-2: #242424;
-  --color-surface-3: #2e2e2e;
-  --color-border: #333333;
-  --color-border-light: #444444;
+  --color-bg: #000000;
+  --color-bg-secondary: #050505;
+  --color-surface: #0a0a0a;
+  --color-surface-2: #111111;
+  --color-surface-3: #1a1a1a;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-light: rgba(255, 255, 255, 0.12);
 
-  --color-text: #e8e8e8;
-  --color-text-secondary: #a0a0a0;
-  --color-text-muted: #666666;
+  --color-text: #ffffff;
+  --color-text-secondary: #a1a1a1;
+  --color-text-muted: #888888;
 
-  --color-accent: #00BFFF;
-  --color-accent-hover: #33ccff;
-  --color-accent-dark: #0099cc;
-  --color-accent-glow: rgba(0, 191, 255, 0.15);
-  --color-accent-glow-strong: rgba(0, 191, 255, 0.3);
+  --color-accent: #ffffff;
+  --color-accent-hover: #ededed;
+  --color-accent-dark: #a1a1a1;
+  --color-accent-glow: transparent;
+  --color-accent-glow-strong: transparent;
 
-  --color-success: #4ade80;
-  --color-warning: #fbbf24;
-  --color-error: #ef4444;
+  /* We will keep success/warning/error but desaturate/darken them or use grayscale. Let's make them neutral or very subtle. */
+  --color-success: #ededed;
+  --color-warning: #a1a1a1;
+  --color-error: #888888;
 
   /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   /* Spacing */
   --space-xs: 4px;
@@ -38,16 +39,16 @@
 
   /* Border Radius */
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
-  --shadow-accent: 0 0 20px rgba(0, 191, 255, 0.2);
+  /* Shadows - Minimalist */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.8);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.9);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 1);
+  --shadow-accent: 0 0 0 1px rgba(255, 255, 255, 0.15);
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -89,6 +90,12 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   overflow-x: hidden;
+  letter-spacing: -0.01em; /* Slight tightening for technical look */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em; /* Tighter headings typical in Vercel/Linear */
+  font-weight: 600;
 }
 
 #root {
@@ -102,7 +109,7 @@ a {
   text-decoration: none;
   transition: color var(--transition-fast);
 }
-a:hover { color: var(--color-accent-hover); }
+a:hover { color: var(--color-text-secondary); }
 
 button {
   cursor: pointer;
@@ -139,7 +146,7 @@ ul, ol { list-style: none; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-border-light); }
 
 ::selection {
-  background: var(--color-accent);
+  background: var(--color-text);
   color: var(--color-bg);
 }
 

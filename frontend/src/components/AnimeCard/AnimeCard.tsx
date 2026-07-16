@@ -24,7 +24,7 @@ export default function AnimeCard({ anime }: Props) {
                         </div>
                     )
                 }
-                {anime.isOngoing && <span className={styles.ongoing}>Онгоинг</span>}
+                {anime.isOngoing && <div className={styles.badge}><span className={styles.ongoing}>Онгоинг</span></div>}
                 <div className={styles.overlay}>
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M8 5v14l11-7z"/>
@@ -32,10 +32,10 @@ export default function AnimeCard({ anime }: Props) {
                 </div>
             </div>
             <div className={styles.info}>
-                <h3 className={styles.title}>{anime.title}</h3>
+                <h3 className={styles.title} title={anime.title}>{anime.title}</h3>
                 <div className={styles.meta}>
-                    {anime.year && <span>{anime.year}</span>}
-                    {anime.type && <span>{anime.type}</span>}
+                    {anime.episodesCount ? <span className={styles.metaItem}>{anime.episodesCount} эп.</span> : (anime.type && <span className={styles.metaItem}>{anime.type}</span>)}
+                    {anime.year && <span className={styles.metaItem}>{anime.year}</span>}
                 </div>
             </div>
         </Link>
