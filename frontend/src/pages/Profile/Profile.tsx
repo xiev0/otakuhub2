@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { setUser, logout } from '../../store/authSlice';
@@ -34,6 +34,9 @@ export default function Profile() {
   const [oldPwd, setOldPwd] = useState('');
   const [newPwd, setNewPwd] = useState('');
   const [pwdMsg, setPwdMsg] = useState('');
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) navigate('/login');
@@ -94,6 +97,28 @@ export default function Profile() {
     setHistory(prev => prev.filter(h => h.id !== id));
   };
 
+  const handleAvatarClick = () => {
+    if (!avatarUploading) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setAvatarUploading(true);
+    try {
+      const updated = await authApi.uploadAvatar(file);
+      dispatch(setUser(updated));
+    } catch (e: any) {
+      alert(`Ошибка загрузки аватара: ${e.message}`);
+    } finally {
+      setAvatarUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   if (!user) return null;
 
   const progressPercent = (h: WatchHistoryEntry) =>
@@ -104,11 +129,25 @@ export default function Profile() {
       {/* ─── Profile Header ─── */}
       <div className={styles.profileHeader}>
         <div className={styles.profileHeaderInner}>
-          <div className={styles.avatarWrap}>
+          <div 
+            className={`${styles.avatarWrap} ${avatarUploading ? styles.avatarUploading : ''} ${styles.avatarClickable}`}
+            onClick={handleAvatarClick}
+            title="Изменить аватар"
+          >
             {user.avatar
               ? <img src={user.avatar} alt={user.username} className={styles.avatar} />
               : <div className={styles.avatarFallback}>{user.username[0].toUpperCase()}</div>
             }
+            <div className={styles.avatarOverlay}>
+              {avatarUploading ? 'Загрузка...' : 'Изменить'}
+            </div>
+            <input 
+              type="file" 
+              accept="image/*"
+              style={{ display: 'none' }}
+              ref={fileInputRef}
+              onChange={handleAvatarChange}
+            />
           </div>
           <div className={styles.profileInfo}>
             <h1 className={styles.username}>{user.username}</h1>

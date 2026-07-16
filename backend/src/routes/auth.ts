@@ -4,6 +4,15 @@ import { eq, or, ilike } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import util from 'util';
+import { pipeline } from 'stream';
+
+const pump = util.promisify(pipeline);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function getTransport() {
   return nodemailer.createTransport({
@@ -107,6 +116,32 @@ export async function authRoutes(app: FastifyInstance) {
     }
     if (!Object.keys(updates).length) return reply.status(400).send({ error: 'Нет данных для обновления' });
     await db.update(schema.users).set(updates).where(eq(schema.users.id, uid));
+    const [user] = await db.select().from(schema.users).where(eq(schema.users.id, uid)).limit(1);
+    return sanitizeUser(user);
+  });
+
+  // POST /api/auth/me/avatar
+  app.post('/me/avatar', { preHandler: requireAuth }, async (req, reply) => {
+    const data = await req.file();
+    if (!data) return reply.status(400).send({ error: 'Файл не найден' });
+    
+    const uid = (req.user as any).id;
+    const ext = path.extname(data.filename) || '.png';
+    const filename = `avatar_${uid}_${Date.now()}${ext}`;
+    const uploadDir = path.join(__dirname, '../../uploads/avatars');
+    
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    
+    const filepath = path.join(uploadDir, filename);
+    await pump(data.file, fs.createWriteStream(filepath));
+    
+    const backendUrl = process.env.API_BASE_URL ?? process.env.VITE_API_URL ?? 'http://localhost:8000';
+    const avatarUrl = `${backendUrl}/uploads/avatars/${filename}`;
+    
+    await db.update(schema.users).set({ avatar: avatarUrl }).where(eq(schema.users.id, uid));
+    
     const [user] = await db.select().from(schema.users).where(eq(schema.users.id, uid)).limit(1);
     return sanitizeUser(user);
   });

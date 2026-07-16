@@ -16,7 +16,37 @@
   flex-wrap: wrap;
 }
 
-.avatarWrap { flex-shrink: 0; }
+.avatarWrap { 
+  flex-shrink: 0;
+  position: relative;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.avatarClickable {
+  cursor: pointer;
+}
+.avatarOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+.avatarClickable:hover .avatarOverlay {
+  opacity: 1;
+}
+.avatarUploading .avatarOverlay {
+  opacity: 1;
+}
 .avatar {
   width: 100px;
   height: 100px;

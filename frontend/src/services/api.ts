@@ -197,6 +197,15 @@ export const authApi = {
       body: JSON.stringify(data),
     }),
 
+  uploadAvatar: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request<User>('/auth/me/avatar', {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
   changePassword: (oldPassword: string, newPassword: string) =>
     request<{ message: string }>('/auth/me/password', {
       method: 'POST',

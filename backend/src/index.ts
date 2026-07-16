@@ -5,9 +5,15 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import multipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { animeRoutes } from './routes/anime';
 import { authRoutes } from './routes/auth';
 import { userRoutes } from './routes/user';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log("👉 [2] Импорты прошли успешно, создаем Fastify...");
 
@@ -28,6 +34,11 @@ await app.register(jwt, {
 });
 
 await app.register(multipart, { limits: { fileSize: 5 * 1024 * 1024 } });
+
+await app.register(fastifyStatic, {
+  root: path.join(__dirname, '..', 'uploads'),
+  prefix: '/uploads/',
+});
 
 // ─── Routes ───
 await app.register(animeRoutes, { prefix: '/api/anime' });
