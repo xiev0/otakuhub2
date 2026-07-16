@@ -7,7 +7,6 @@ import openingVideo from '../../assets/opening.mp4';
 
 export default function Home() {
   const [popular, setPopular] = useState<AnimeRelease[]>([]);
-  const [recommendations, setRecommendations] = useState<AnimeRelease[]>([]);
   const [schedule, setSchedule] = useState<AnimeRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [random, setRandom] = useState<AnimeRelease[]>([]);
@@ -16,13 +15,11 @@ export default function Home() {
   useEffect(() => {
     Promise.allSettled([
       animeApi.getPopular(6),
-      animeApi.getRecommendations(6),
       animeApi.getSchedule(),
       animeApi.getRandom(6),
       animeApi.getMovie(6),
     ]).then(([pop, rec, sch, ran, mov]) => {
       if (pop.status === 'fulfilled') setPopular(pop.value);
-      if (rec.status === 'fulfilled') setRecommendations(rec.value);
       if (sch.status === 'fulfilled') setSchedule(sch.value.slice(0, 7));
       if (ran.status === 'fulfilled') setRandom(ran.value);
       if (mov.status === 'fulfilled') setMovies(mov.value);
@@ -123,31 +120,6 @@ export default function Home() {
               </div>
           )}
         </section>
-
-        {/* Рекомендованные */}
-        {(loading || recommendations.length > 0) && (
-            <section className={styles.section}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                  Рекомендации
-                </h2>
-              </div>
-              {loading ? (
-                  <div className={styles.row}>
-                    {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className={styles.skeleton} />
-                    ))}
-                  </div>
-              ) : (
-                  <div className={styles.row}>
-                    {recommendations.map(a => <AnimeCard key={a.id} anime={a} />)}
-                  </div>
-              )}
-            </section>
-        )}
       </div>
     </div>
   );
