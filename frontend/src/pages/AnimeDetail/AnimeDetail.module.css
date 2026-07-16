@@ -408,3 +408,47 @@
   .infoSection { margin-top: -60px; }
   .meta { padding-top: 0; }
 }
+
+.sourceSwitch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.sourceBtn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.sourceActive {
+  background: rgba(255,255,255,0.15);
+  font-weight: 600;
+}
+
+.translationList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.translationBtn {
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.kodikFrame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  border-radius: 8px;
+  display: block;
+}

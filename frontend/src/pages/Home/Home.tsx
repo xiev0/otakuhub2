@@ -53,27 +53,6 @@ export default function Home() {
       </div>
 
       <div className={styles.container}>
-        {/* ─── Schedule ─── */}
-        {schedule.length > 0 && (
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              Выходит сейчас
-            </h2>
-            <div className={styles.scheduleRow}>
-              {schedule.map(a => (
-                <Link key={a.id} to={`/anime/${a.id}`} className={styles.scheduleItem}>
-                  {a.poster && <img src={a.poster} alt={a.title} className={styles.schedulePoster} />}
-                  <span className={styles.scheduleTitle}>{a.title}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* ─── Popular ─── */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
