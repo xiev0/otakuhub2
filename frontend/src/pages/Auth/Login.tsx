@@ -33,7 +33,7 @@ export default function Login() {
   return (
     <div className={styles.page}>
       <div className={styles.card}>
-        <Link to="/" className={styles.logo}>Otaku<span>Hub</span></Link>
+        <Link to="/" className={styles.logo}>Ani<span>ki</span></Link>
         <h1 className={styles.heading}>Вход в аккаунт</h1>
 
         {error && <div className={styles.error}>{error}</div>}
