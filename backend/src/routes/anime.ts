@@ -28,6 +28,22 @@ export async function animeRoutes(app: FastifyInstance) {
     const { limit = '12' } = req.query as { limit?: string };
     return await shikimori.getRandom(Number(limit));
   });
+
+  app.get('/catalog', async (req, reply) => {
+    const query = req.query as Record<string, string>;
+    const params: shikimori.CatalogParams = {
+        page: Number(query.page) || 1,
+        limit: Number(query.limit) || 24,
+        order: query.order,
+        kind: query.kind,
+        status: query.status,
+        season: query.season,
+        score: query.score,
+        genre: query.genre,
+        search: query.search,
+    };
+    return await shikimori.getCatalog(params);
+  });
 // GET /api/anime/recommendations
   app.get('/recommendations', async (req, reply) => {
     const { limit = '12' } = req.query as { limit?: string };

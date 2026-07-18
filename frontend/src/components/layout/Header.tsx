@@ -60,9 +60,14 @@ export default function Header() {
       <header className={styles.header}>
         <div className={styles.inner}>
           {/* Logo */}
-          <Link to="/" className={styles.logo}>
-            Ani<span className={styles.logoAccent}>ki</span>
-          </Link>
+          <div className={styles.logoGroup}>
+            <Link to="/" className={styles.logo}>
+              Ani<span className={styles.logoAccent}>ki</span>
+            </Link>
+            <nav className={styles.nav}>
+              <Link to="/catalog" className={styles.navLink}>Каталог</Link>
+            </nav>
+          </div>
 
           {/* Search */}
           <div className={styles.searchWrap} ref={searchRef}>

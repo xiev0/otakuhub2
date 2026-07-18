@@ -26,8 +26,32 @@
   color: var(--color-text);
   letter-spacing: -0.5px;
   flex-shrink: 0;
+  text-decoration: none;
 }
 .logoAccent { color: var(--color-accent); }
+
+.logoGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.navLink {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+
+.navLink:hover {
+  color: var(--color-text);
+}
 
 /* Search */
 .searchWrap {

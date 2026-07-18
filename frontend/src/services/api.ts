@@ -126,6 +126,18 @@ export interface EpisodesResponse {
   kodik: KodikSource[] | null;
 }
 
+export interface CatalogParams {
+  page?: number;
+  limit?: number;
+  order?: string;
+  kind?: string;
+  status?: string;
+  season?: string;
+  score?: string;
+  genre?: string;
+  search?: string;
+}
+
 // ─── Anime API ─────────────────────────────────────────────────────────
 export const animeApi = {
   getLatest: (limit = 6) =>
@@ -145,6 +157,14 @@ export const animeApi = {
 
   getSchedule: () =>
     request<AnimeRelease[]>('/anime/schedule'),
+
+  getCatalog: (params: CatalogParams) => {
+    const qs = Object.entries(params)
+      .filter(([_, v]) => v !== undefined && v !== '')
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
+      .join('&');
+    return request<AnimeRelease[]>(`/anime/catalog${qs ? `?${qs}` : ''}`);
+  },
 
   search: (q: string, limit = 10) =>
     request<AnimeRelease[]>(`/anime/search?q=${encodeURIComponent(q)}&limit=${limit}`),

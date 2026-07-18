@@ -76,16 +76,35 @@ interface RawShikimoriAnimeDetail extends RawShikimoriAnime {
     franchise: string | null;
 }
 
-// ---------- fetch-обёртка ----------
-async function fetchJson<T>(url: string, params?: Record<string, string>): Promise<T> {
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+async function fetchJson<T>(url: string, params?: Record<string, string>, retries = 3): Promise<T> {
     const u = new URL(url);
     if (params) Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, v));
-    const res = await fetch(u.toString(), {
-        headers: { 'User-Agent': 'OtakuHub/2.0' },
-        signal: AbortSignal.timeout(8000),
-    });
-    if (!res.ok) throw new Error(`Shikimori API ${res.status}: ${res.statusText}`);
-    return res.json() as Promise<T>;
+    
+    for (let i = 0; i < retries; i++) {
+        try {
+            const res = await fetch(u.toString(), {
+                headers: { 'User-Agent': 'OtakuHub/2.0' },
+                signal: AbortSignal.timeout(8000),
+            });
+            if (res.ok) return await res.json() as T;
+            if (res.status === 429 && i < retries - 1) {
+                console.warn(`Shikimori API 429: Too Many Requests. Retrying in ${1000 * (i + 1)}ms...`);
+                await delay(1000 * (i + 1));
+                continue;
+            }
+            throw new Error(`Shikimori API ${res.status}: ${res.statusText}`);
+        } catch (e: any) {
+            if (i < retries - 1 && (e.name === 'TimeoutError' || e.message.includes('fetch failed') || e.message.includes('429'))) {
+                console.warn(`Shikimori API fetch failed (${e.message}). Retrying in ${1000 * (i + 1)}ms...`);
+                await delay(1000 * (i + 1));
+                continue;
+            }
+            throw e;
+        }
+    }
+    throw new Error(`Shikimori API failed after ${retries} retries`);
 }
 
 // ---------- Мапперы ----------
@@ -240,5 +259,39 @@ export async function getTitleById(id: number | string): Promise<AnimeRelease | 
     } catch (e) {
         console.error('Shikimori getTitleById error:', e);
         return null;
+    }
+}
+
+export interface CatalogParams {
+    page?: number;
+    limit?: number;
+    order?: string;
+    kind?: string;
+    status?: string;
+    season?: string;
+    score?: string;
+    genre?: string;
+    search?: string;
+}
+
+export async function getCatalog(params: CatalogParams): Promise<AnimeRelease[]> {
+    try {
+        const queryParams: Record<string, string> = {
+            limit: String(params.limit || 12),
+            page: String(params.page || 1)
+        };
+        if (params.order) queryParams.order = params.order;
+        if (params.kind) queryParams.kind = params.kind;
+        if (params.status) queryParams.status = params.status;
+        if (params.season) queryParams.season = params.season;
+        if (params.score) queryParams.score = params.score;
+        if (params.genre) queryParams.genre = params.genre;
+        if (params.search) queryParams.search = params.search;
+
+        const raw = await fetchJson<RawShikimoriAnime[]>(`${API_BASE}/api/animes`, queryParams);
+        return Array.isArray(raw) ? await mapListWithPosters(raw) : [];
+    } catch (e) {
+        console.error('Shikimori getCatalog error:', e);
+        return [];
     }
 }

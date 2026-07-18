@@ -1,30 +1,35 @@
-import { useEffect, useState } from 'react';
-import { animeApi, type AnimeRelease } from '../../services/api';
-import AnimeCard from '../../components/AnimeCard/AnimeCard';
+import { useState, useEffect, useRef } from 'react';
+import { CATEGORIES } from './categories';
+import RecommendationRow from '../../components/RecommendationRow/RecommendationRow';
 import styles from './Home.module.css';
 import openingVideo from '../../assets/opening.mp4';
 
 export default function Home() {
-  const [popular, setPopular] = useState<AnimeRelease[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [random, setRandom] = useState<AnimeRelease[]>([]);
-  const [movies, setMovies] = useState<AnimeRelease[]>([]);
+  const [loadedCount, setLoadedCount] = useState(2);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    Promise.allSettled([
-      animeApi.getPopular(6),
-      animeApi.getRandom(6),
-      animeApi.getMovie(6),
-    ]).then(([pop, ran, mov]) => {
-      if (pop.status === 'fulfilled') setPopular(pop.value);
-      if (ran.status === 'fulfilled') setRandom(ran.value);
-      if (mov.status === 'fulfilled') setMovies(mov.value);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setLoadedCount((prev) => Math.min(prev + 2, CATEGORIES.length));
+        }
+      },
+      { rootMargin: '400px' }
+    );
 
-      [pop, ran, mov].forEach(r => {
-        if (r.status === 'rejected') console.error(r.reason);
-      });
-    }).finally(() => setLoading(false));
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
   }, []);
+
+  const visibleCategories = CATEGORIES.slice(0, loadedCount);
 
   return (
       <div className={styles.page}>
@@ -46,65 +51,16 @@ export default function Home() {
         </div>
 
         <div className={styles.container}>
-          {/* ─── Popular ─── */}
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>
-                Популярное
-              </h2>
+          {visibleCategories.map((config, i) => (
+            <RecommendationRow key={i} config={config} />
+          ))}
+          
+          {/* Intersection Observer Target */}
+          {loadedCount < CATEGORIES.length && (
+            <div ref={observerTarget} className={styles.loadingTrigger}>
+              <div className={styles.spinner} />
             </div>
-            {loading ? (
-                <div className={styles.row}>
-                  {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className={styles.skeleton} />
-                  ))}
-                </div>
-            ) : (
-                <div className={styles.row}>
-                  {popular.map(a => <AnimeCard key={a.id} anime={a} />)}
-                </div>
-            )}
-          </section>
-
-          {/* random */}
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>
-                Случайные аниме
-              </h2>
-            </div>
-            {loading ? (
-                <div className={styles.row}>
-                  {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className={styles.skeleton} />
-                  ))}
-                </div>
-            ) : (
-                <div className={styles.row}>
-                  {random.map(a => <AnimeCard key={a.id} anime={a} />)}
-                </div>
-            )}
-          </section>
-
-          {/* ─── Фильмы ─── */}
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>
-                Фильмы
-              </h2>
-            </div>
-            {loading ? (
-                <div className={styles.row}>
-                  {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className={styles.skeleton} />
-                  ))}
-                </div>
-            ) : (
-                <div className={styles.row}>
-                  {movies.map(a => <AnimeCard key={a.id} anime={a} />)}
-                </div>
-            )}
-          </section>
+          )}
         </div>
       </div>
   );

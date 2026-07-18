@@ -4,6 +4,7 @@ import { useAppDispatch } from './store/hooks';
 import { fetchProfile } from './store/authSlice';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home/Home';
+import Catalog from './pages/Catalog/Catalog';
 import AnimeDetail from './pages/AnimeDetail/AnimeDetail';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
@@ -25,6 +26,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
+          <Route path="catalog" element={<Catalog />} />
           <Route path="anime/:id" element={<AnimeDetail />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
