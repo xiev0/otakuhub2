@@ -1,31 +1,15 @@
-# OtakuHub 2
+# Aniki
 
 Упрощённая и переписанная версия OtakuHub.
 
 ## Стек
 
-| Часть     | Технология                                   |
-|-----------|----------------------------------------------|
-| Frontend  | React + TypeScript + Vite + Redux Toolkit    |
-| Backend   | Bun + Fastify + TypeScript + Drizzle ORM     |
-| Database  | PostgreSQL                                   |
-| Плеер     | hls.js (только AniLibria)                    |
-
-## Что убрано по сравнению с v1
-
-- ❌ OAuth (Google, VK и др.) — только логин/пароль
-- ❌ Форум
-- ❌ Каталог
-- ❌ Лидерборд
-- ❌ Kodik, Yummy, VK плееры — **только AniLibria HLS**
-- ❌ Стена профиля, подписки, уведомления, чат
-
-## Что осталось
-
-- ✅ Главная: герой-баннер, расписание, популярное, обновления
-- ✅ Страница аниме: постер + описание + AniLibria плеер + комментарии
-- ✅ Авторизация (регистрация, вход, сброс пароля по email)
-- ✅ Профиль: список аниме, история просмотра, настройки
+| Часть     | Технология          |
+|-----------|---------------------|
+| Frontend  | React + TypeScript + Vite + Redux Toolkit |
+| Backend   | Bun + Fastify + TypeScript + Drizzle ORM |
+| Database  | PostgreSQL          |
+| Плеер     |                     |
 
 ## Запуск
 
@@ -90,7 +74,7 @@ otakuhub2/
 │       ├── db/          # Drizzle schema + client
 │       ├── middleware/  # JWT auth
 │       ├── routes/      # anime, auth, user
-│       └── services/    # AniLibria API
+│       └── services/    # Api
 └── frontend/
     └── src/
         ├── components/  # Layout, Header, Footer, HlsPlayer, AnimeCard
