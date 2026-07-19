@@ -13,8 +13,8 @@ export default function Footer() {
         </div>
         <div className={styles.links}>
           <Link to="/" className={styles.link}>Главная</Link>
-          <Link to="/login" className={styles.link}>Войти</Link>
-          <Link to="/register" className={styles.link}>Регистрация</Link>
+            <Link to="/catalog" className={styles.link}>Каталог</Link>
+            <Link to="/contacts" className={styles.link}>Контакты</Link>
         </div>
       </div>
       <div className={styles.bottom}>

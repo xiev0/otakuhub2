@@ -11,6 +11,7 @@ import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import ResetPassword from './pages/Auth/ResetPassword';
 import Profile from './pages/Profile/Profile';
+import Contacts from "./pages/About site/contacts.tsx";
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="profile" element={<Profile />} />
           <Route path="profile/:userId" element={<Profile />} />
+          <Route path="contacts" element={<Contacts />} />
         </Route>
       </Routes>
     </BrowserRouter>
