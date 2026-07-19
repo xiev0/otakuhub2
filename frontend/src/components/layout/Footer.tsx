@@ -19,7 +19,7 @@ export default function Footer() {
       </div>
       <div className={styles.bottom}>
         <span>© {new Date().getFullYear()} Aniki. Все права защищены.</span>
-        <span>Видео предоставляется сервисом AniLibria</span>
+        <span>Видео беруться из открытых источников</span>
       </div>
     </footer>
   );
